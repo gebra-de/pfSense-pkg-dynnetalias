@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pfsensepkgs>
+	<package>
+		<name>dynnetalias</name>
+		<descr>Dynamic Networks Alias</descr>
+		<version>%%PKGVERSION%%</version>
+		<configurationfile>dynnetalias.xml</configurationfile>
+	</package>
+</pfsensepkgs>

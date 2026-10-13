@@ -1,0 +1,3 @@
+Dynamic Networks Alias maintains native pfSense network aliases from the
+current networks of selected interfaces. It combines multiple dynamic interface
+networks into stable aliases without creating interface groups or firewall tabs.

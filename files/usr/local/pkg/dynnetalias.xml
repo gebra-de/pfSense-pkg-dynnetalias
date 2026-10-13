@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<packagegui>
+	<copyright><![CDATA[
+/*
+ * Copyright 2026 gebra
+ * SPDX-License-Identifier: Apache-2.0
+ */
+	]]></copyright>
+	<name>dynnetalias</name>
+	<version>%%PKGVERSION%%</version>
+	<title>Firewall/Dynamic Networks Alias</title>
+	<addedit_string>Dynamic Networks Alias: configuration changed</addedit_string>
+	<delete_string>Dynamic Networks Alias: definition deleted</delete_string>
+	<include_file>/usr/local/pkg/dynnetalias.inc</include_file>
+	<custom_php_install_command>dynnetalias_package_initialize();</custom_php_install_command>
+	<custom_php_deinstall_command>dynnetalias_package_deinstall();</custom_php_deinstall_command>
+	<custom_php_resync_config_command>dynnetalias_package_resync();</custom_php_resync_config_command>
+	<custom_php_validation_command>dynnetalias_validate($_POST, $input_errors, $id);</custom_php_validation_command>
+	<custom_php_command_before_form>dynnetalias_prepare_list($evaledvar);</custom_php_command_before_form>
+	<menu>
+		<name>Auto Alias</name>
+		<section>Firewall</section>
+		<url>/pkg.php?xml=dynnetalias.xml</url>
+	</menu>
+	<adddeleteeditpagefields>
+		<columnitem>
+			<fielddescr>Alias Name</fielddescr>
+			<fieldname>name</fieldname>
+		</columnitem>
+		<columnitem>
+			<fielddescr>Address Family</fielddescr>
+			<fieldname>family</fieldname>
+		</columnitem>
+		<columnitem>
+			<fielddescr>Interfaces</fielddescr>
+			<fieldname>interfaces</fieldname>
+		</columnitem>
+		<addtext>Add a dynamic network alias</addtext>
+		<edittext>Edit this dynamic network alias</edittext>
+		<deletetext>Delete this dynamic network alias</deletetext>
+	</adddeleteeditpagefields>
+	<fields>
+		<field>
+			<fielddescr>Alias Name</fielddescr>
+			<fieldname>name</fieldname>
+			<type>input</type>
+			<description>Enter a unique native pfSense alias name using letters, numbers, and underscores.</description>
+			<required />
+		</field>
+		<field>
+			<fielddescr>Address Family</fielddescr>
+			<fieldname>family</fieldname>
+			<type>select</type>
+			<description>Select the address classes to include from the selected interfaces.</description>
+			<options>
+				<option><name>IPv4 only</name><value>ipv4</value></option>
+				<option><name>IPv6 ULA only</name><value>ula</value></option>
+				<option><name>IPv6 GUA only</name><value>gua</value></option>
+				<option><name>IPv4 and IPv6 GUA</name><value>ipv4_gua</value></option>
+				<option><name>IPv4 and IPv6 ULA</name><value>ipv4_ula</value></option>
+				<option><name>IPv4, IPv6 GUA, and IPv6 ULA</name><value>ipv4_gua_ula</value></option>
+				<option><name>IPv6 ULA and GUA</name><value>ula_gua</value></option>
+			</options>
+			<default_value>gua</default_value>
+			<required />
+		</field>
+		<field>
+			<fielddescr>Interfaces</fielddescr>
+			<fieldname>interfaces</fieldname>
+			<type>interfaces_selection</type>
+			<description>Select two or more interfaces. Hold Ctrl or Command to select multiple entries.</description>
+			<multiple />
+			<size>8</size>
+			<required />
+		</field>
+
+	</fields>
+</packagegui>

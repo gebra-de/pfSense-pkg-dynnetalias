@@ -1,0 +1,6 @@
+@comment Copyright 2026 gebra
+@comment SPDX-License-Identifier: Apache-2.0
+pkg/dynnetalias.inc
+pkg/dynnetalias.xml
+libexec/dynnetalias_worker.php
+%%DATADIR%%/info.xml
