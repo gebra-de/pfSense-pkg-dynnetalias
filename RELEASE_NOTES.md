@@ -26,7 +26,7 @@ and package upgrades.
 
 ### Validation
 
-- 22 regression tests passed.
+- 30 regression tests passed.
 - PHP syntax checks passed.
 - `check-plist` passed.
 - Fresh installation, package upgrade, multiple selection, and live event
