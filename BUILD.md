@@ -57,3 +57,7 @@ pkg add -f work/pkg/pfSense-pkg-dynnetalias-<version>.pkg
 Open **Firewall > Auto Alias**, create a definition, and confirm the resulting
 native alias under **Firewall > Aliases**. Firewall and NAT rules remain under
 administrator control.
+
+The package installs a `build-info` file containing its version, build
+timestamp, and source commit. Confirm these values along with the package
+origin and license before publishing a release artifact.

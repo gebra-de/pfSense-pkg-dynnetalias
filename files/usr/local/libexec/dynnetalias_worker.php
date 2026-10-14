@@ -21,6 +21,7 @@ if ($signal === false) {
 
 try {
 	$processed = null;
+	$retry_delays = [2, 3, 5, 10, 20, 30];
 	while (true) {
 		if (!flock($signal, LOCK_EX)) {
 			throw new RuntimeException('Cannot lock the Auto Alias worker signal');
@@ -40,9 +41,37 @@ try {
 			break;
 		}
 
-		/* Let Track6 and other native interface processing publish final addresses. */
-		sleep(2);
-		dynnetalias_sync('native interface or package reload event');
+		/* Track6 can publish addresses well after the first package reload event. */
+		foreach ($retry_delays as $attempt => $delay) {
+			sleep($delay);
+			try {
+				dynnetalias_sync('native interface or package reload event');
+			} catch (Throwable $error) {
+				if ($attempt === array_key_last($retry_delays)) {
+					throw $error;
+				}
+				error_log('Dynamic Networks Alias worker: ' . $error->getMessage() .
+					'; retry scheduled');
+			}
+
+			if (!flock($signal, LOCK_EX)) {
+				throw new RuntimeException('Cannot lock the Auto Alias worker signal');
+			}
+			try {
+				rewind($signal);
+				$raw = trim(stream_get_contents($signal));
+				if ($raw !== '' && !ctype_digit($raw)) {
+					throw new RuntimeException('Invalid Auto Alias worker generation');
+				}
+				$current = (int)$raw;
+			} finally {
+				flock($signal, LOCK_UN);
+			}
+			if ($current !== $requested) {
+				$requested = $current;
+				continue 2;
+			}
+		}
 		$processed = $requested;
 	}
 } catch (Throwable $error) {

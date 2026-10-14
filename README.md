@@ -1,27 +1,27 @@
 # Dynamic Networks Alias
 
+Copyright © 2026 gebra
+
+Contact: [projects@gbrands.de](mailto:projects@gbrands.de)
+
+License: Apache License 2.0
+
 Dynamic Networks Alias is a native pfSense package that combines the current
-networks of multiple interfaces into stable firewall aliases.
+networks of multiple interfaces into stable firewall aliases. It is a spin-off
+from [DynGUA-PD](https://github.com/gebra-de/pfSense-Dyn-GUA-Delegation), where
+native automatically managed aliases were first used for delegated prefixes.
 
-The project addresses a practical limitation with multiple dynamic IPv6 GUA
-networks. It is a spin-off from [DynGUA-PD](https://github.com/gebra-de/pfSense-Dyn-GUA-Delegation), where native automatically managed aliases were first used for delegated prefixes.
-
-Interface groups can combine interfaces for policy management, but
-they also create additional tabs under **Firewall > Rules**. This package keeps
-rule organization unchanged by maintaining ordinary native network aliases.
-
-> **Status:** Version 0.2.0 is the first beta release candidate. Automatic
-> synchronization has been verified during a live DHCPv6-PD and Track6 prefix
-> transition triggered through the native pfSense interface lifecycle.
+> **Project status:** Version 0.2.2_4 Beta RC2 for pfSense CE 2.9.0. Beta RC1
+> was revoked because a fresh installation could fail when its definition list
+> was absent. Beta RC2 includes that correction and automatic event refresh.
 
 ## Goals
 
 - Create administrator-defined aggregate aliases from two or more interfaces.
-- Follow dynamic IPv4 networks, IPv6 GUA prefixes, and IPv6 ULA prefixes automatically.
+- Follow dynamic IPv4 networks, IPv6 GUA prefixes, and IPv6 ULA prefixes.
 - Support multiple simultaneous networks on an interface.
-- Write aliases through native pfSense configuration and alias functions.
 - Keep firewall and NAT rule design under administrator control.
-- Avoid interface groups when they are needed only to combine network objects.
+- Avoid interface groups used only to combine network objects.
 - Preserve rule references when a dynamic network is temporarily unavailable.
 
 ## Workflow
@@ -32,8 +32,9 @@ flowchart TD
     SELECT --> FAMILY[Select IPv4, IPv6 GUA, IPv6 ULA, or a combination]
     FAMILY --> SAVE[Save through the native package framework]
 
-    EVENT[Interface address or prefix changes] --> DISCOVER[Read current interface networks]
-    SAVE --> DISCOVER
+    EVENT[Interface address or prefix changes] --> WORKER[Signal the synchronization worker]
+    SAVE --> WORKER
+    WORKER --> DISCOVER[Read current interface networks]
     DISCOVER --> FILTER[Filter by selected address family]
     FILTER --> NORMALIZE[Canonicalize and deduplicate CIDRs]
     NORMALIZE --> ALIAS[Update native automanaged network alias]
@@ -42,83 +43,89 @@ flowchart TD
     RULES[Administrator-managed firewall and NAT rules] --> ALIAS
 ```
 
-## Alias Ownership
-
-Each generated object is a native pfSense alias with:
-
-- type `network`
-- tag `automanaged`
-- a stable administrator-selected name
-- a description such as
-  `Managed by Auto Alias; content: LAN net, OPT1 net`
-
-The package will refuse to overwrite an alias it does not own. If a referenced
-managed alias temporarily has no usable networks, it remains present and empty
-so existing firewall rules do not contain broken references. Deleting a
-definition removes its alias only when the alias is no longer referenced.
-
-## Address Selection
-
-For IPv6, definitions can include Global Unicast Address networks from `2000::/3`, Unique Local Address networks from `fc00::/7`, or both. Link-local, loopback, multicast, and unusable addresses are excluded. Each unique active network is included once.
-
-IPv4 support uses the active interface network rather than the individual host address. Definitions may combine IPv4, GUA, and ULA networks, but firewall rules still need an address family compatible with their use.
-
 ## Web Interface
 
-The package appears under **Firewall > Auto Alias**. Each definition contains:
+Open **Firewall > Auto Alias**. Select **Add**, enter a stable native alias
+name, choose the address classes, and select at least two interfaces. Hold
+Ctrl on Windows or Linux, or Command on macOS, to select multiple entries.
 
 | Field | Purpose |
 | --- | --- |
 | **Alias Name** | Sets the stable native pfSense alias name. |
-| **Address Family** | Selects IPv4, IPv6 GUA, IPv6 ULA, or any supported combination. |
-| **Interfaces** | Selects two or more source interfaces. |
+| **Address Family** | Selects IPv4, IPv6 GUA, IPv6 ULA, or a supported combination. |
+| **Interfaces** | Selects two or more source interfaces. Loopback is excluded. |
 
-Saving a definition does not create firewall or NAT rules. Administrators use
-the resulting alias wherever a native network alias is accepted.
+Saving a definition creates or updates an ordinary native network alias. It
+does not create firewall or NAT rules. Administrators use the resulting alias
+wherever pfSense accepts a network alias.
 
-## Safety Model
+## Address Selection
+
+IPv6 definitions can include Global Unicast Address networks from `2000::/3`,
+Unique Local Address networks from `fc00::/7`, or both. Link-local, loopback,
+multicast, and unusable addresses are excluded. IPv4 uses each active interface
+network instead of its individual host address.
+
+The package supports IPv4, GUA, ULA, IPv4 with GUA, IPv4 with ULA, GUA with
+ULA, and all three address classes. Firewall rules still need an address family
+compatible with their use.
+
+## Alias Ownership and Safety
+
+Each generated object is a native `network` alias with the `automanaged` tag,
+the administrator-selected name, and a description such as
+`Managed by Auto Alias; content: LAN net, OPT1 net`.
 
 - Foreign aliases are never adopted or overwritten.
-- Empty dynamic results fail closed by producing an empty alias.
-- Alias and filter reloads occur only after a real content change.
+- An exact package-owned alias is reclaimed safely after an upgrade.
+- Empty dynamic results fail closed by retaining an empty alias.
+- Referenced aliases remain present so firewall and NAT rules do not break.
+- Alias and filter reloads occur only after content changes.
 - Configuration writes are serialized.
 - Generated CIDRs are validated and canonicalized before persistence.
-- Package removal does not break references in existing rules.
+- Package removal preserves aliases referenced by existing rules.
 - Core pfSense files are not patched.
 
-## Native Integration
+## Automatic Synchronization
 
-The implementation uses the pfSense package framework, configured-interface
-APIs, native alias tags, alias reference checks, alias table generation, and
-filter configuration routines. Saving, editing, or deleting a definition
-signals the synchronization worker. Native interface and prefix changes invoke
-the same worker through the pfSense package reload event. Repeated events are
-coalesced before aliases and filters are updated.
+Saving, editing, or deleting a definition signals a separate synchronization
+worker. Native interface and prefix reload events signal the same worker.
+Repeated events are coalesced, and a bounded retry window allows dynamic
+addresses to settle after boot or an interface restart before aliases and the
+filter are refreshed.
 
-The project follows Netgate's
+Automatic synchronization was verified during live DHCPv6-PD and Track6
+prefix changes on pfSense CE 2.9.0.
+
+## Development Standards
+
+The project uses the native pfSense package framework and follows Netgate's
 [pfSense Developer Style Guide](https://docs.netgate.com/pfsense/en/latest/references/developer-style-guide.html)
 and
 [Typographic Conventions](https://docs.netgate.com/pfsense/en/latest/references/typographic-conventions.html).
 
-## Package Layout
+## Installation
 
-```text
-Makefile
-pkg-descr
-pkg-plist
-files/pkg-install.in
-files/pkg-deinstall.in
-files/usr/local/pkg/dynnetalias.xml
-files/usr/local/pkg/dynnetalias.inc
-files/usr/local/libexec/dynnetalias_worker.php
-files/usr/local/share/pfSense-pkg-dynnetalias/info.xml
+Download the package and checksum from the signed `beta-rc2` GitHub release.
+Verify the checksum before transferring the package to pfSense:
+
+```sh
+sha256 pfSense-pkg-dynnetalias-0.2.2_4.pkg
+pkg add -f ./pfSense-pkg-dynnetalias-0.2.2_4.pkg
 ```
 
-The event worker is a separate process entry point because native interface
-reloads must not perform package writes while holding network-service locks.
+Back up the pfSense configuration before installing pre-release software. See
+[`BUILD.md`](BUILD.md) to validate and build the package from source.
+
+## Current Limitations
+
+- Beta RC2 is pre-release software intended for testing and review.
+- Only configured and currently observable interface networks can be included.
+- A temporarily unavailable network leaves the managed alias empty until a
+  later native event or package resynchronization discovers it.
+- Firewall and NAT rules remain entirely under administrator control.
 
 ## License
 
-Copyright © 2026 gebra
-
-Licensed under the Apache License, Version 2.0. See [`LICENSE`](LICENSE).
+Dynamic Networks Alias is licensed under the Apache License, Version 2.0. See
+the complete license text in [`LICENSE`](LICENSE).

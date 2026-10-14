@@ -4,3 +4,4 @@ pkg/dynnetalias.inc
 pkg/dynnetalias.xml
 libexec/dynnetalias_worker.php
 %%DATADIR%%/info.xml
+%%DATADIR%%/build-info

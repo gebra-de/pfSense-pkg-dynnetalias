@@ -3,7 +3,7 @@
  * Copyright 2026 gebra
  * SPDX-License-Identifier: Apache-2.0
  *
- * Dynamic Networks Alias 0.2.0: native pfSense interface network aliases.
+ * Dynamic Networks Alias: native pfSense interface network aliases.
  */
 if (!defined('DYNNETALIAS_TESTING')) {
 	require_once('/etc/inc/config.inc');
@@ -14,6 +14,7 @@ if (!defined('DYNNETALIAS_TESTING')) {
 
 const DYNNETALIAS_CONFIG = 'installedpackages/dynnetalias/config';
 const DYNNETALIAS_DESCRIPTION = 'Managed by Auto Alias';
+const DYNNETALIAS_FORMER_DESCRIPTION = 'Former Auto Alias; review referenced firewall and NAT rules';
 if (!defined('DYNNETALIAS_SIGNAL')) {
 	define('DYNNETALIAS_SIGNAL', '/var/run/dynnetalias-sync.generation');
 }
@@ -94,7 +95,11 @@ function dynnetalias_family_label(string $family): string {
 }
 
 /* Replace stored values with readable labels in the native package list only. */
-function dynnetalias_prepare_list(array &$definitions): void {
+function dynnetalias_prepare_list(mixed &$definitions): void {
+	if (!is_array($definitions)) {
+		$definitions = [];
+		return;
+	}
 	$configured = get_configured_interface_with_descr();
 	foreach ($definitions as &$definition) {
 		if (!is_array($definition)) {
@@ -218,17 +223,22 @@ function dynnetalias_validate(array $post, array &$input_errors, string|int|null
 	}
 	$configured = get_configured_interface_with_descr();
 	foreach ($interfaces as $interface) {
+		if ($interface === 'loopback') {
+			$input_errors[] = gettext('Loopback cannot be used as an alias source');
+			continue;
+		}
 		if (!array_key_exists($interface, $configured)) {
 			$input_errors[] = sprintf(gettext('Interface %s is not configured'), $interface);
 		}
 	}
-	foreach (config_get_path(DYNNETALIAS_CONFIG, []) as $index => $definition) {
+	foreach (dynnetalias_definitions() as $index => $definition) {
 		if ((string)$index !== (string)$id &&
 		    strcasecmp((string)($definition['name'] ?? ''), $name) === 0) {
 			$input_errors[] = sprintf(gettext('Alias name %s is already defined'), $name);
 		}
 	}
-	foreach (config_get_path('aliases/alias', []) as $alias) {
+	$aliases = config_get_path('aliases/alias', []);
+	foreach (is_array($aliases) ? $aliases : [] as $alias) {
 		if (strcasecmp((string)($alias['name'] ?? ''), $name) === 0 && !dynnetalias_owns($alias)) {
 			$input_errors[] = sprintf(gettext('Alias %s already exists and is not owned by Auto Alias'), $name);
 		}
@@ -265,7 +275,8 @@ function dynnetalias_sync_config(): bool {
 	foreach ($aliases as $alias) {
 		$key = strtolower((string)($alias['name'] ?? ''));
 		if (isset($desired[$key])) {
-			if (!dynnetalias_owns($alias)) {
+			$reclaimable = (string)($alias['descr'] ?? '') === DYNNETALIAS_FORMER_DESCRIPTION;
+			if (!dynnetalias_owns($alias) && !$reclaimable) {
 				throw new RuntimeException(sprintf(
 					gettext('Alias %s already exists and is not owned by Auto Alias'),
 					$desired[$key]['name']));
@@ -419,7 +430,7 @@ function dynnetalias_package_deinstall(): void {
 			if (is_alias_inuse((string)$alias['name'])) {
 				$alias['address'] = '';
 				$alias['detail'] = '';
-				$alias['descr'] = gettext('Former Auto Alias; review referenced firewall and NAT rules');
+				$alias['descr'] = DYNNETALIAS_FORMER_DESCRIPTION;
 				unset($alias['tags']);
 				$result[] = $alias;
 			}
