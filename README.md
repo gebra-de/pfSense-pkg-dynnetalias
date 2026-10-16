@@ -11,9 +11,9 @@ networks of multiple interfaces into stable firewall aliases. It is a spin-off
 from [DynGUA-PD](https://github.com/gebra-de/pfSense-Dyn-GUA-Delegation), where
 native automatically managed aliases were first used for delegated prefixes.
 
-> **Project status:** Version 0.2.2_4 Beta RC2 for pfSense CE 2.9.0. Beta RC1
-> was revoked because a fresh installation could fail when its definition list
-> was absent. Beta RC2 includes that correction and automatic event refresh.
+> **Project status:** Version 0.2.3 Beta RC3 for pfSense CE 2.9.0.
+> This release adds guarded migration from interface groups while retaining
+> automatic refresh after native interface address and prefix events.
 
 ## Goals
 
@@ -70,6 +70,24 @@ The package supports IPv4, GUA, ULA, IPv4 with GUA, IPv4 with ULA, GUA with
 ULA, and all three address classes. Firewall rules still need an address family
 compatible with their use.
 
+## Migrating from Interface Groups
+
+Use a name for the Dynamic Networks Alias that is different from every existing
+interface group. pfSense treats interface-group names as reserved system aliases,
+and firewall rules store them as interface `network` references instead of regular
+alias `address` references. Auto Alias rejects reserved names to prevent that
+ambiguity.
+
+For each affected firewall or NAT rule, select the new Auto Alias, save the rule,
+and apply the pending changes before deleting the interface group. Then delete the
+interface group and apply the pending changes again. Verify the resulting rules.
+
+pfSense does not rebuild the filter automatically when an interface group is
+deleted. If a migrated rule appears invalid afterward, open it, select the Auto
+Alias again, save the rule, and apply the pending changes. This writes the native
+`address` reference and rebuilds the filter. Auto Alias deliberately does not edit
+administrator-owned firewall or NAT rules.
+
 ## Alias Ownership and Safety
 
 Each generated object is a native `network` alias with the `automanaged` tag,
@@ -106,12 +124,12 @@ and
 
 ## Installation
 
-Download the package and checksum from the signed `beta-rc2` GitHub release.
+Download the package and checksum from the signed `beta-rc3` GitHub release.
 Verify the checksum before transferring the package to pfSense:
 
 ```sh
-sha256 pfSense-pkg-dynnetalias-0.2.2_4.pkg
-pkg add -f ./pfSense-pkg-dynnetalias-0.2.2_4.pkg
+sha256 pfSense-pkg-dynnetalias-0.2.3.pkg
+pkg add -f ./pfSense-pkg-dynnetalias-0.2.3.pkg
 ```
 
 Back up the pfSense configuration before installing pre-release software. See
@@ -119,7 +137,7 @@ Back up the pfSense configuration before installing pre-release software. See
 
 ## Current Limitations
 
-- Beta RC2 is pre-release software intended for testing and review.
+- Beta RC3 is pre-release software intended for testing and review.
 - Only configured and currently observable interface networks can be included.
 - A temporarily unavailable network leaves the managed alias empty until a
   later native event or package resynchronization discovers it.

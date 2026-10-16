@@ -208,11 +208,28 @@ function dynnetalias_resolve(array $definition): array {
 	return ['address' => implode(' ', $networks), 'detail' => implode('||', $ordered_details)];
 }
 
+/* Identify names reserved by pfSense, including interface groups in CLI contexts. */
+function dynnetalias_name_is_reserved(string $name): bool {
+	if (!empty(get_reserved_table_names($name))) {
+		return true;
+	}
+	foreach ((array)config_get_path('ifgroups/ifgroupentry', []) as $group) {
+		if (is_array($group) &&
+		    strcasecmp((string)($group['ifname'] ?? ''), $name) === 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /* Validate a single native editor submission without changing configuration. */
 function dynnetalias_validate(array $post, array &$input_errors, string|int|null $id = null): void {
 	$name = trim((string)($post['name'] ?? ''));
 	if (!is_validaliasname($name)) {
 		$input_errors[] = invalidaliasnamemsg($name);
+	}
+	if (dynnetalias_name_is_reserved($name)) {
+		$input_errors[] = sprintf(gettext('Alias name %s is reserved by pfSense'), $name);
 	}
 	if (!dynnetalias_family_classes((string)($post['family'] ?? ''))) {
 		$input_errors[] = gettext('Select a valid address family');
@@ -253,6 +270,10 @@ function dynnetalias_sync_config(): bool {
 		    !dynnetalias_family_classes($definition['family']) ||
 		    count($definition['interfaces']) < 2) {
 			throw new RuntimeException(gettext('Invalid Dynamic Networks Alias configuration'));
+		}
+		if (dynnetalias_name_is_reserved($definition['name'])) {
+			throw new RuntimeException(sprintf(
+				gettext('Alias name %s is reserved by pfSense'), $definition['name']));
 		}
 		$key = strtolower($definition['name']);
 		if (isset($desired[$key])) {
@@ -363,7 +384,8 @@ function dynnetalias_requirements(): void {
 	foreach (['config_get_path', 'config_set_path', 'config_read_file', 'write_config',
 	    'get_configured_interface_with_descr', 'get_real_interface', 'get_interface_ip',
 	    'get_interface_subnet', 'pfSense_get_ifaddrs', 'is_validaliasname',
-	    'invalidaliasnamemsg', 'get_tags_from_alias_item', 'is_alias_inuse',
+	    'invalidaliasnamemsg', 'get_reserved_table_names', 'get_tags_from_alias_item',
+	    'is_alias_inuse',
 	    'alias_make_table', 'filter_configure', 'lock', 'unlock', 'mwexec_bg'] as $function) {
 		if (!function_exists($function)) {
 			throw new RuntimeException(sprintf(

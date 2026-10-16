@@ -1,5 +1,47 @@
 # Release Notes
 
+## Version 0.2.3 — Beta RC3
+
+Beta RC3 makes migrations from pfSense interface groups deterministic and
+documents the native rule-reference behavior discovered during production
+testing.
+
+### Added
+
+- Reject Auto Alias names reserved by pfSense, including active interface
+  group names.
+- Enforce the same reserved-name check during background synchronization so
+  imported or directly edited package configuration cannot bypass validation.
+- Document the safe migration sequence from interface groups to Auto Alias and
+  the native reselect, save, and apply recovery procedure.
+
+### Technical background
+
+pfSense stores interface groups in firewall and NAT rules as `network`
+references, while ordinary aliases use `address` references. Deleting an
+interface group neither converts existing rule entries nor invokes a filter
+reload or package callback. Auto Alias therefore prevents ambiguous names and
+leaves administrator-owned firewall and NAT rules unchanged.
+
+### Validation
+
+- 32 regression tests passed.
+- PHP syntax checks passed.
+- Reserved-name validation was verified against active interface groups on
+  pfSense CE 2.9.0.
+- Package build and `check-plist` passed.
+- Upgrade installation preserved definitions and generated aliases on pfSense CE 2.9.0.
+- No package-generated PHP errors were recorded after installation.
+
+### Package
+
+- Version: `0.2.3`
+- Target: pfSense CE 2.9.0 / FreeBSD 16 amd64
+- License: Apache-2.0
+- Build ID: `20261016-125339`
+- Source commit: `24ee430`
+- SHA256: `7c1cf36f3b46411694d1eb58a529a232827433718b724d4d9917e2718d269d7d`
+
 ## Version 0.2.2_4 — Beta RC2
 
 Beta RC2 supersedes the revoked Beta RC1 and its unpublished maintenance
