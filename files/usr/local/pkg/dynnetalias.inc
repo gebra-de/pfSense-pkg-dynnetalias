@@ -86,7 +86,7 @@ function dynnetalias_family_label(string $family): string {
 		'gua' => gettext('IPv6 GUA only'),
 		'ipv4_gua' => gettext('IPv4 and IPv6 GUA'),
 		'ipv4_ula' => gettext('IPv4 and IPv6 ULA'),
-		'ipv4_gua_ula' => gettext('IPv4, IPv6 GUA, and IPv6 ULA'),
+		'ipv4_gua_ula' => gettext('IPv4, IPv6 GUA and IPv6 ULA'),
 		'ula_gua' => gettext('IPv6 ULA and GUA'),
 	];
 	$legacy = dynnetalias_family_classes($family);

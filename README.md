@@ -11,14 +11,14 @@ networks of multiple interfaces into stable firewall aliases. It is a spin-off
 from [DynGUA-PD](https://github.com/gebra-de/pfSense-Dyn-GUA-Delegation), where
 native automatically managed aliases were first used for delegated prefixes.
 
-> **Project status:** Version 0.2.3 Beta RC3 for pfSense CE 2.9.0.
-> This release adds guarded migration from interface groups while retaining
-> automatic refresh after native interface address and prefix events.
+> **Project status:** Version 1.0.0 for pfSense CE 2.9.0. The release provides
+> guarded migration from interface groups and automatic refresh after native
+> interface address and prefix events.
 
 ## Goals
 
 - Create administrator-defined aggregate aliases from two or more interfaces.
-- Follow dynamic IPv4 networks, IPv6 GUA prefixes, and IPv6 ULA prefixes.
+- Follow dynamic IPv4 networks, IPv6 GUA prefixes and IPv6 ULA prefixes.
 - Support multiple simultaneous networks on an interface.
 - Keep firewall and NAT rule design under administrator control.
 - Avoid interface groups used only to combine network objects.
@@ -61,8 +61,9 @@ wherever pfSense accepts a network alias.
 
 ## Address Selection
 
-IPv6 definitions can include Global Unicast Address networks from `2000::/3`,
-Unique Local Address networks from `fc00::/7`, or both. Link-local, loopback,
+IPv6 definitions can include global unicast address (GUA) prefixes from
+`2000::/3`, unique local address (ULA) prefixes from `fc00::/7`, or both.
+Link-local, loopback,
 multicast, and unusable addresses are excluded. IPv4 uses each active interface
 network instead of its individual host address.
 
@@ -124,20 +125,19 @@ and
 
 ## Installation
 
-Download the package and checksum from the signed `beta-rc3` GitHub release.
+Download the package and checksum from the signed `v1.0.0` GitHub release.
 Verify the checksum before transferring the package to pfSense:
 
 ```sh
-sha256 pfSense-pkg-dynnetalias-0.2.3.pkg
-pkg add -f ./pfSense-pkg-dynnetalias-0.2.3.pkg
+sha256 pfSense-pkg-dynnetalias-1.0.0.pkg
+pkg add -f ./pfSense-pkg-dynnetalias-1.0.0.pkg
 ```
 
-Back up the pfSense configuration before installing pre-release software. See
+Back up the pfSense configuration before installing the package. See
 [`BUILD.md`](BUILD.md) to validate and build the package from source.
 
 ## Current Limitations
 
-- Beta RC3 is pre-release software intended for testing and review.
 - Only configured and currently observable interface networks can be included.
 - A temporarily unavailable network leaves the managed alias empty until a
   later native event or package resynchronization discovers it.

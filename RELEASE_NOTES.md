@@ -1,5 +1,46 @@
 # Release Notes
 
+## Version 1.0.0
+
+Dynamic Networks Alias 1.0.0 is the first release qualified through the full
+beta test cycle on pfSense CE 2.9.0. It maintains stable native firewall aliases
+from the current networks of multiple selected interfaces.
+
+### Highlights
+
+- Combines active IPv4 networks, IPv6 GUA prefixes, IPv6 ULA prefixes or any
+  supported combination in administrator-defined native aliases.
+- Synchronizes managed aliases after native interface address and prefix events.
+- Coalesces repeated events and retries while dynamic addresses settle after
+  boot or an interface restart.
+- Protects foreign aliases, validates and canonicalizes generated CIDRs, and
+  serializes configuration writes.
+- Preserves referenced aliases as empty objects when their dynamic networks are
+  unavailable.
+- Rejects names reserved by interface groups and documents the safe migration
+  sequence for existing firewall and NAT rules.
+- Leaves firewall and NAT rule ownership with the administrator and does not
+  patch pfSense core files.
+
+### Validation
+
+- 32 regression tests pass on pfSense CE 2.9.0.
+- PHP syntax, package XML, `portlint`, package integrity, and `check-plist` are
+  validated as part of the release build.
+- Fresh installation, upgrade, reboot, native event synchronization, multiple
+  selection, interface-group migration, and live IPv6 renumbering were tested.
+
+### Package
+
+- Version: `1.0.0`
+- Target: pfSense CE 2.9.0 / FreeBSD 16 amd64
+- License: Apache-2.0
+- Tag: `v1.0.0`
+- Artifact: `pfSense-pkg-dynnetalias-1.0.0.pkg`
+
+Back up the pfSense configuration before installation. Verify the published
+SHA256 checksum before transferring the package to the firewall.
+
 ## Version 0.2.3 — Beta RC3
 
 Beta RC3 makes migrations from pfSense interface groups deterministic and
@@ -101,7 +142,7 @@ The current development version provides:
 - Native pfSense package installation and menu integration
 - Administrator-defined aggregate network aliases
 - Selection of two or more configured interfaces
-- IPv4, IPv6 GUA (`2000::/3`), and IPv6 ULA (`fc00::/7`) filtering
+- IPv4, IPv6 GUA (`2000::/3`) and IPv6 ULA (`fc00::/7`) filtering
 - All useful combinations of the supported address classes
 - Support for multiple active networks on one interface
 - Native `network` aliases carrying the `automanaged` tag

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 PORTNAME=	pfSense-pkg-dynnetalias
-PORTVERSION=	0.2.3
+PORTVERSION=	1.0.0
 CATEGORIES=	net
 MASTER_SITES=	# empty
 DISTFILES=	# empty

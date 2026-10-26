@@ -72,7 +72,7 @@
 				<option><name>IPv6 GUA only</name><value>gua</value></option>
 				<option><name>IPv4 and IPv6 GUA</name><value>ipv4_gua</value></option>
 				<option><name>IPv4 and IPv6 ULA</name><value>ipv4_ula</value></option>
-				<option><name>IPv4, IPv6 GUA, and IPv6 ULA</name><value>ipv4_gua_ula</value></option>
+				<option><name>IPv4, IPv6 GUA and IPv6 ULA</name><value>ipv4_gua_ula</value></option>
 				<option><name>IPv6 ULA and GUA</name><value>ula_gua</value></option>
 			</options>
 			<default_value>gua</default_value>
