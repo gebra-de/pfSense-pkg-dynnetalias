@@ -30,10 +30,27 @@ from the current networks of multiple selected interfaces.
 - Fresh installation, upgrade, reboot, native event synchronization, multiple
   selection, interface-group migration, and live IPv6 renumbering were tested.
 
+#### Post-release compatibility validation — November 27, 2026
+
+- Version 1.0.0 was installed and functionally validated on production systems
+  running pfSense CE 2.9.1 and 2.9.2.
+- The unchanged runtime code was rebuilt and installed on pfSense CE 2.9.2 /
+  FreeBSD 16 amd64 in the dedicated test environment.
+- All 32 regression tests, PHP syntax checks, package XML validation,
+  `portlint`, package integrity, and `check-plist` passed.
+- Managed aliases followed a live upstream IA_PD change and a subsequent
+  synchronization was idempotent.
+- Native Kea DHCPv4 and DHCPv6 remained active, and no package-related PHP
+  errors were recorded.
+- The pfSense upgrade removed the manually installed package but retained its
+  definitions; reinstalling version 1.0.0 regenerated the managed aliases.
+- The published 1.0.0 artifact is unchanged; this validation does not replace
+  its package or checksum.
+
 ### Package
 
 - Version: `1.0.0`
-- Target: pfSense CE 2.9.0 / FreeBSD 16 amd64
+- Validated targets: pfSense CE 2.9.0, 2.9.1, and 2.9.2 / FreeBSD 16 amd64
 - License: Apache-2.0
 - Tag: `v1.0.0`
 - Artifact: `pfSense-pkg-dynnetalias-1.0.0.pkg`

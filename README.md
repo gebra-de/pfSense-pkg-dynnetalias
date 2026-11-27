@@ -11,9 +11,9 @@ networks of multiple interfaces into stable firewall aliases. It is a spin-off
 from [DynGUA-PD](https://github.com/gebra-de/pfSense-Dyn-GUA-Delegation), where
 native automatically managed aliases were first used for delegated prefixes.
 
-> **Project status:** Version 1.0.0 for pfSense CE 2.9.0. The release provides
-> guarded migration from interface groups and automatic refresh after native
-> interface address and prefix events.
+> **Project status:** Version 1.0.0, validated on pfSense CE 2.9.0, 2.9.1, and
+> 2.9.2. The release provides guarded migration from interface groups and
+> automatic refresh after native interface address and prefix events.
 
 ## Goals
 
@@ -116,6 +116,18 @@ filter are refreshed.
 Automatic synchronization was verified during live DHCPv6-PD and Track6
 prefix changes on pfSense CE 2.9.0.
 
+## Compatibility Validation
+
+Version 1.0.0 was installed and functionally validated on production systems
+running pfSense CE 2.9.1 and 2.9.2. On November 27, 2026, the unchanged runtime
+code was also rebuilt and installed on a pfSense CE 2.9.2 test system. All 32
+regression tests passed, package integrity and native Kea DHCPv4/DHCPv6 service
+operation were verified, and no package-related PHP errors were recorded.
+
+The 2.9.2 test included an upstream IA_PD change. Every managed alias converged
+on the resulting new interface networks. A subsequent synchronization reported
+no change, confirming that the stored configuration was already consistent.
+
 ## Development Standards
 
 The project uses the native pfSense package framework and follows Netgate's
@@ -135,6 +147,12 @@ pkg add -f ./pfSense-pkg-dynnetalias-1.0.0.pkg
 
 Back up the pfSense configuration before installing the package. See
 [`BUILD.md`](BUILD.md) to validate and build the package from source.
+
+A pfSense system upgrade can remove a manually installed package that is not
+available from the official package repository. After upgrading pfSense, check
+`pkg info pfSense-pkg-dynnetalias` and reinstall the verified package if
+necessary. The 2.9.2 validation retained all saved definitions and regenerated
+their managed aliases after reinstallation.
 
 ## Current Limitations
 

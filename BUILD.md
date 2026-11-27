@@ -2,6 +2,8 @@
 
 Dynamic Networks Alias is built as a native pfSense package on a compatible
 pfSense development or test system with the FreeBSD ports framework installed.
+Version 1.0.0 has been validated on pfSense CE 2.9.0 through 2.9.2 and FreeBSD
+16. Build on a system matching the intended target release.
 
 ## Requirements
 
